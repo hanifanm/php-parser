@@ -1,62 +1,272 @@
+// Data-data
 let str = `<?php
-$arr = array('str1' =>"\n\r\t", 'str2' =>"demo76876test"); 
-foreach ($arr as $a => $demo) { 
-   if (ctype_cntrl($demo)) { 
-      echo "$a has all control characters. \n"; 
-   }else { 
-      echo "$a does not have all control characters. \n"; 
-   } 
-}
-?>`
+    switch () {
+        case afor : 
+        default :
+        case hanifan :
+    }
+    ;
+    ;
+?>`;
 
-const reserved = [
-    '<?php',
-    'array',
-    'foreach',
-    '++',
-    '--',
-    'if',
-    'else',
-    'echo',
-    '?>'
-];
+document.getElementById('str').value = str;
+
+// Helper Function
+
+function isReserved(str) {
+    if(str.length === 1) return true;
+    for(let rsv of reserves) {
+        if(rsv.substring(0, str.length) === str) return true;
+    }
+    return false;
+}
+
+Array.prototype.contain = function (str) {
+    return this.indexOf(str) >= 0;
+}
+
+// Getter Function
 
 let index = 0;
 
-function top() {
+function char() {
     if(index>=str.length) return null;
+    // if(str[index === ' ']) index++;
     return str[index];
 }
 
-function pop() {
+function symbol() {
     if(index>=str.length) return null;
-    return str[index++];
+    let symbol = '';
+    let offset = 0;
+    while(isReserved(symbol + str[index + offset])) {
+        symbol += str[index + offset] || '';
+        offset++;
+    }
+    // if(str[index + offset] === ' ') index++;
+    return symbol;
 }
 
-function getSymbol() {
-    if(index >= str.length) return null;
-    let symbol = '';
-    let temp = reserved.slice();
-    for(let i=0; true; i++) {
-        let c = top();
-        let newTemp = [];
-        for(let rsv of temp) {
-            if(rsv[i] === c) {
-                newTemp.push(rsv);
-            }
-        }
-        if(newTemp.length>0) {
-            temp = newTemp;
-            symbol += pop();
+///////////////////////////////////////////////
+
+let isValid = true;
+let code = '';
+
+function accept(str) {
+    if(!isValid) return;
+    if(!str) {
+        isValid = false;
+        return;
+    }
+    let len = str.length;
+    if(len === 1) {
+        console.log(index + ' CHECK CHAR ', char(), str);
+        if(str===char()) {
+            code += str;
+            index += len;
         } else {
-            break;
+            isValid = false;
+            console.log('FAILED AT', str);
+        }
+    } else {
+        console.log(index + ' CHECK SYMBOL ', symbol(), str);
+        if(str===symbol()) {
+            code += str;
+            index += len;
+        } else {
+            isValid = false;
+            console.log('FAILED AT', str);
         }
     }
-    return symbol !== '' ? symbol : pop();
+    while([' ', '\n'].indexOf(char()) >= 0) {
+        index++;
+    }
 }
 
-while(true) {
-    let sym = getSymbol();
-    if(!sym) break;
-    console.log(sym);
+///////////////////////////////////////////////
+
+function main(){
+    index = 0;
+    code = '';
+    isValid = true;
+    program();
+    if(isValid) {
+        return {
+            status : 'SUCCESS',
+            code : code
+        }
+    } else {
+        return {
+            status : 'FAILED',
+            code : code
+        }
+    }
+}
+
+///////////////////////////////////////////////
+
+// Program
+
+function program() {
+    accept('<?php');
+    let firstBlock = ['switch'];
+    while(firstBlock.contain(symbol())) {
+        block();
+    }
+    accept('?>')
+}
+
+function block() {
+    let first1 = ['switch', ';'];
+    let first2 = [];
+    if(first1.contain(symbol())) {
+        while(first1.contain(symbol())) {
+            statement();
+        }
+    } else if(first2.contain(symbol())) {
+        while(first2.contain(symbol())) {
+            functionDeclarationStatement();
+        }
+    } else {
+        classDeclaration();
+    }
+}
+
+// Statement
+
+function statement() {
+    if(char() === '{') {
+        let firstBlock = ['switch'];
+        accept('{');
+        while(firstBlock.contain(symbol())) {
+            block();
+        }
+        accept('}');
+    } else {
+        switch(symbol()) {
+            case 'switch':
+                accept('switch');
+                accept('(');
+                expr();
+                accept(')');
+                accept('{');
+                switchCase();
+                accept('}');
+                break;
+            case 'while':
+                break;
+            case 'for':
+                break;
+            case 'if':
+                break;
+            case 'do':
+                break;
+            case 'echo':
+                break;
+            case 'for':
+                break;
+            case 'return':
+                break;
+            default:
+                let firstExpr = [];
+                if(firstExpr.contain(symbol())) {
+                    expr();
+                }
+                accept(';');
+        }
+    }
+}
+
+function switchCase() {
+    while(symbol() === 'case') {
+        _case();
+    }
+    if(symbol() === 'default') {
+        _default()
+    }
+    while(symbol() === 'case') {
+        _case();
+    }
+}
+
+function _case() {
+    accept('case');
+    tString();
+    console.log('will accept :');
+    accept(':');
+}
+
+function _default() {
+    accept('default');
+    accept(':');
+}
+
+// Class and Interface
+
+function classDeclaration() {
+
+}
+
+// Function
+
+function functionDeclarationStatement() {
+
+}
+
+// Expression
+
+function exprC() {
+    expr();
+    while(char() === ',') {
+        accept(',');
+        expr();
+    }
+}
+
+function expr() {
+
+}
+
+// Operator
+
+// Others
+
+function tString() {
+    if(char() === '_') {
+        accept('_');
+    } else {
+        letter();
+    }
+    let varName = ['_'].concat(arrLetters).concat(arrDigits);
+    while(varName.contain(char())) {
+        accept(char());
+    }
+}
+
+function varName() {
+    if(char() === '_') {
+        accept('_');
+    } else if(arrLetters.contain(char())) {
+        letter();
+    } else {
+        digit();
+    }
+}
+
+function letter() {
+    let c = char();
+    if(arrLetters.contain(char())) {
+        accept(c);
+    } else {
+        accept(null);
+    }
+}
+
+function digit() {
+    let c = char();
+    if(arrDigits.contain(char())) {
+        accept(c);
+    } else {
+        accept(null);
+    }
 }

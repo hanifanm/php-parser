@@ -1,25 +1,35 @@
-<script>
-
-    let symbol = '';
-
-    function accept() {
-        return true;
-    }
-
-    function program() {
-        accept('<?php');
-        while(['function', 'for'].indexOf(symbol) > 0) {
-            return true;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>PHP Parser</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        textarea {
+            width: 90%;
+            padding: 20px;
+            margin: 10px auto;
         }
-    }
-
-    function innerStatement() {
-
-    }
-
-
-
-
-
-
-</script>
+    </style>
+</head>
+    <body>
+        <textarea rows='25' id='str'>hello</textarea>
+        <br/>
+        <button onclick='test()'>TEST</button>
+        <h2>RESULT</h2>
+        <p id='status'></p>
+        <pre id='code'></pre>
+        <script src='const.js'></script>
+        <script src='index.js'></script>
+        <script>
+            function test() {
+                str = document.getElementById('str').value;
+                let result = main();
+                document.getElementById('status').innerText = result.status;
+                document.getElementById('code').innerText = result.code;
+            }
+            test();
+        </script>
+    </body>
+</html>
