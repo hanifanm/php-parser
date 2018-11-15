@@ -5,31 +5,33 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>PHP Parser</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        textarea {
-            width: 90%;
-            padding: 20px;
-            margin: 10px auto;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
     <body>
-        <textarea rows='25' id='str'>hello</textarea>
-        <br/>
-        <button onclick='test()'>TEST</button>
-        <h2>RESULT</h2>
-        <p id='status'></p>
-        <pre id='code'></pre>
+
+        <div class='container'>
+            <div class='code'>
+                <div class='action'>
+                    <button onclick='test()'>PARSE CODE</button>
+                </div>
+                <textarea rows='40' id='str'></textarea>
+            </div>
+            <div class='divider'></div>
+            <div class='result'>
+                <h2>TEST RESULT</h2>
+                <p id='status'></p>
+                <pre id='code'></pre>
+            </div>
+        </div>
+
         <script src='const.js'></script>
         <script src='index.js'></script>
+        <script src='initial.js'></script>
         <script>
-            function test() {
-                str = document.getElementById('str').value;
-                let result = main();
-                document.getElementById('status').innerText = result.status;
-                document.getElementById('code').innerText = result.code;
-            }
+            document.getElementById('str').innerHTML = initialString;
             test();
         </script>
+
+
     </body>
 </html>

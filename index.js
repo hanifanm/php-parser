@@ -1,175 +1,210 @@
-// Data-data
-let str = `<?php
-    switch () {
-        case afor : 
-        default :
-        case hanifan :
-    }
-    ;
-    ;
-?>`;
+// Global Variable ///////////////////////////////////////////////////
 
-document.getElementById('str').value = str;
+let index = 0;
+let code = '';
+let first = new First();
+let str = '';
 
-// Helper Function
-
-function isReserved(str) {
-    if(str.length === 1) return true;
-    for(let rsv of reserves) {
-        if(rsv.substring(0, str.length) === str) return true;
-    }
-    return false;
-}
+// Helper Function ///////////////////////////////////////////////////
 
 Array.prototype.contain = function (str) {
     return this.indexOf(str) >= 0;
 }
 
-// Getter Function
+// Getter Function ///////////////////////////////////////////////////
 
-let index = 0;
+function isReserved(str) {
+    if (str.length === 1) return true;
+    for (let rsv of reserves) {
+        if (rsv.substring(0, str.length) === str) return true;
+    }
+    return false;
+}
 
 function char() {
-    if(index>=str.length) return null;
-    // if(str[index === ' ']) index++;
+    if (index >= str.length) return null;
     return str[index];
 }
 
 function symbol() {
-    if(index>=str.length) return null;
+    if (index >= str.length) return null;
     let symbol = '';
     let offset = 0;
-    while(isReserved(symbol + str[index + offset])) {
+    while (isReserved(symbol + str[index + offset])) {
         symbol += str[index + offset] || '';
         offset++;
     }
-    // if(str[index + offset] === ' ') index++;
     return symbol;
 }
 
-///////////////////////////////////////////////
-
-let isValid = true;
-let code = '';
+// Accept Function ///////////////////////////////////////////////////
 
 function accept(str) {
-    if(!isValid) return;
-    if(!str) {
-        isValid = false;
-        return;
-    }
     let len = str.length;
-    if(len === 1) {
+    if (len === 1) {
         console.log(index + ' CHECK CHAR ', char(), str);
-        if(str===char()) {
+        if (str === char()) {
             code += str;
             index += len;
         } else {
-            isValid = false;
-            console.log('FAILED AT', str);
+            console.log('FAILED WHEN CHECK', char(), 'WHEN IT MUST BE', str);
+            throw new Error({
+                code: code,
+            })
         }
     } else {
         console.log(index + ' CHECK SYMBOL ', symbol(), str);
-        if(str===symbol()) {
+        if (str === symbol()) {
             code += str;
             index += len;
         } else {
-            isValid = false;
-            console.log('FAILED AT', str);
+            console.log('FAILED WHEN CHECK', symbol(), 'WHEN IT MUST BE', str);
+            throw new Error({
+                code: code,
+            })
         }
-    }
-    while([' ', '\n'].indexOf(char()) >= 0) {
-        index++;
     }
 }
 
-///////////////////////////////////////////////
+// Main Function ///////////////////////////////////////////////////
 
-function main(){
+function main() {
     index = 0;
     code = '';
-    isValid = true;
-    program();
-    if(isValid) {
+    try {
+        program();
         return {
-            status : 'SUCCESS',
-            code : code
+            status: 'SUCCESS',
+            code: code
         }
-    } else {
+    } catch (error) {
+        console.error(error);
         return {
-            status : 'FAILED',
-            code : code
+            status: 'FAILED',
+            code: code
         }
     }
 }
 
-///////////////////////////////////////////////
+function test() {
+    str = document.getElementById('str').value
+        .replace(/\n/g, ' ')
+        .replace(/\s\s+/g, ' ')
+        .trim();
+    let result = main();
+    document.getElementById('status').innerText = result.status;
+    document.getElementById('code').innerText = result.code;
+}
+
+// EBNF Parser ///////////////////////////////////////////////////
 
 // Program
 
 function program() {
     accept('<?php');
-    let firstBlock = ['switch'];
-    while(firstBlock.contain(symbol())) {
+    accept(' ');
+    while (first.block.contain(symbol())) {
         block();
+        space();
     }
+    space();
     accept('?>')
 }
 
 function block() {
-    let first1 = ['switch', ';'];
-    let first2 = [];
-    if(first1.contain(symbol())) {
-        while(first1.contain(symbol())) {
-            statement();
+    if (first.statement.contain(symbol())) {
+        while (first.statement.contain(symbol())) {
+            statement(); space();
         }
-    } else if(first2.contain(symbol())) {
-        while(first2.contain(symbol())) {
-            functionDeclarationStatement();
+    } else if (first.functionDeclarationStatement.contain(symbol())) {
+        while (first.functionDeclarationStatement.contain(symbol())) {
+            functionDeclarationStatement(); space();
         }
     } else {
-        classDeclaration();
+        while (first.classDeclaration.contain(symbol())) {
+            classDeclaration(); space();
+        }
     }
 }
 
 // Statement
 
 function statement() {
-    if(char() === '{') {
-        let firstBlock = ['switch'];
-        accept('{');
-        while(firstBlock.contain(symbol())) {
-            block();
+    if (char() === '{') {
+        accept('{'); space();
+        while (first.block.contain(symbol())) {
+            block(); space();
         }
         accept('}');
     } else {
-        switch(symbol()) {
+        switch (symbol()) {
             case 'switch':
-                accept('switch');
-                accept('(');
-                expr();
-                accept(')');
-                accept('{');
-                switchCase();
+                accept('switch'); space();
+                accept('('); space();
+                expr(); space();
+                accept(')'); space();
+                accept('{'); space();
+                while (first.switchCase.contain(symbol())) {
+                    switchCase(); space();
+                }
                 accept('}');
                 break;
             case 'while':
+                accept('while'); space();
+                accept('('); space();
+                expr();
+                accept(')'); space();
+                innerStatement();
                 break;
             case 'for':
+                accept('for'); space();
+                accept('('); space();
+                exprC(); space();
+                accept(';'); space();
+                exprC(); space();
+                accept(';'); space();
+                exprC(); space();
+                accept(')'); space();
+                innerStatement();
                 break;
             case 'if':
+                accept('if'); space();
+                accept('('); space();
+                expr(); space();
+                accept(')'); space();
+                statement(); space();
+                while (first.elseif.contain(symbol())) {
+                    elseif(); space();
+                }
+                if (first._else.contain(symbol())) {
+                    _else(); space();
+                }
                 break;
             case 'do':
+                accept('do'); space();
+                innerStatement(); space();
+                accept('while'); space();
+                accept('('); space();
+                expr(); space();
+                accept(')'); space();
+                accept(';');
                 break;
             case 'echo':
-                break;
-            case 'for':
+                accept('echo');
+                accept(' ');
+                valueC(); space();
+                accept(';');
                 break;
             case 'return':
+                accept('return');
+                accept(' ');
+                if (first.expr.contain(symbol())) {
+                    expr(); space();
+                }
+                accept(';');
                 break;
             default:
-                let firstExpr = [];
-                if(firstExpr.contain(symbol())) {
+                if (first.expr.contain(symbol())) {
                     expr();
                 }
                 accept(';');
@@ -177,85 +212,449 @@ function statement() {
     }
 }
 
+function innerStatement() {
+    if (first.statement.contain(symbol())) {
+        statement();
+    } else if (symbol() === 'break') {
+        accept('break');
+        space();
+        accept(';');
+    }
+}
+
+function elseif() {
+    accept('elseif'); space();
+    accept('('); space();
+    expr(); space();
+    accept(')'); space();
+    statement();
+}
+
+function _else() {
+    accept('else'); space();
+    statement();
+}
+
 function switchCase() {
-    while(symbol() === 'case') {
+    while (symbol() === 'case') {
         _case();
+        space();
     }
-    if(symbol() === 'default') {
+    if (symbol() === 'default') {
         _default()
+        space();
     }
-    while(symbol() === 'case') {
+    while (symbol() === 'case') {
         _case();
+        space();
     }
 }
 
 function _case() {
     accept('case');
-    tString();
-    console.log('will accept :');
+    accept(' ');
+    expr();
+    space();
     accept(':');
+    space();
+    while (first.innerStatement.contain(symbol())) {
+        innerStatement();
+        space();
+    }
 }
 
 function _default() {
     accept('default');
+    space();
     accept(':');
+    space();
+    while (first.innerStatement.contain(symbol())) {
+        innerStatement();
+        space();
+    }
 }
 
 // Class and Interface
 
 function classDeclaration() {
+    if (first.classEntryType.contain(symbol())) {
+        classEntryType(); accept(' ');
+        tString(); accept(' ');
+        if (symbol() === 'extends') {
+            accept('extends');
+            accept(' ');
+            tString(); space();
+        }
+        if (first.implementsList.contain(symbol())) {
+            implementsList(); space();
+        }
+        accept('{'); space();
+        while (first.modifier.contain(symbol()) || first.classStatement.contain(symbol())) {
+            if (first.modifier.contain(symbol())) {
+                modifier();
+                accept(' ');
+            }
+            classStatement(); space();
+        }
+        accept('}'); space();
+    } else {
+        accept('interface');
+        accept(' ');
+        tString(); space();
+        if (first.interfaceExtendsList.contain(symbol())) {
+            interfaceExtendsList(); space();
+        }
+        accept('{'); space();
+        while (first.functionDeclaration.contain(symbol())) {
+            functionDeclaration(); space();
+        }
+        accept('}'); space();
+    }
+}
 
+function classEntryType() {
+    switch (symbol()) {
+        case 'abstract':
+            accept('abstract');
+            accept(' ');
+            accept('class');
+            break;
+        case 'final':
+            accept('final');
+            accept(' ');
+            accept('class');
+            break;
+        default:
+            accept('class');
+            break;
+    }
+}
+
+function implementsList() {
+    accept('implements');
+    accept(' ');
+    tStringC();
+}
+
+function interfaceExtendsList() {
+    accept('extends');
+    accept(' ');
+    tStringC();
+}
+
+function classStatement() {
+    if (first.assignmentExpr.contain(symbol())) {
+        assignmentExpr();
+        space();
+        accept(';');
+    } else {
+        functionDeclarationStatement();
+    }
+}
+
+function modifier() {
+    switch (symbol()) {
+        case 'protected':
+            accept('protected');
+            break;
+        case 'private':
+            accept('private');
+            break;
+        case 'static':
+            accept('static');
+            break;
+        case 'abstract':
+            accept('abstract');
+            break;
+        default:
+            accept('final');
+            break;
+    }
 }
 
 // Function
 
 function functionDeclarationStatement() {
+    functionDeclaration(); space();
+    functionStatement();
+}
 
+function functionDeclaration() {
+    accept('function');
+    accept(' ');
+    tString(); space();
+    accept('('); space();
+    if(first.functionParameterC.contain(symbol())) {
+        functionParameterC(); space();
+    }
+    accept(')'); 
+}
+
+function functionStatement() {
+    accept('{'); space();
+    statement(); space();
+    accept('}');
+}
+
+function functionParameterC() {
+    functionParameter(); space();
+    while(char() === ',') {
+        accept(','); space();
+        functionParameter();
+    }
+}
+
+function functionParameter() {
+    if(first.assignmentExpr.contain(symbol())) {
+        assignmentExpr()
+    } else {
+        value();
+    }
 }
 
 // Expression
 
 function exprC() {
-    expr();
-    while(char() === ',') {
-        accept(',');
-        expr();
+    expr(); space();
+    while (char() === ',') {
+        accept(','); space();
+        expr(); space();
     }
 }
 
 function expr() {
+    console.log('expr', symbol())
+    if (first.assignmentExpr.contain(symbol())) {
+        assignmentExpr();
+    } else {
+        rightHand(); space();
+        if (first.operator.contain(symbol())) {
+            operator(); space();
+            rightHand();
+        }
+    }
+}
 
+function assignmentExpr() {
+    leftHand(); space();
+    if (first.assignmentOperator.contain(symbol())) {
+        assignmentOperator(); space();
+        rightHand();
+    } else if (first.operator.contain(symbol())) {
+        operator(); space();
+        rightHand();
+    }
+}
+
+function leftHand() {
+    tVariable(); space();
+    while (first.access.contain(symbol())) {
+        access(); space();
+    }
+}
+
+function rightHand() {
+    if (first.constantValueSingle.contain(symbol())) {
+        constantValueSingle();
+    } else if (first.array.contain(symbol())) {
+        array();
+    } else if (first.functionCall.contain(symbol())) {
+        functionCall();
+    } else {
+        deincremental(); space();
+        tVariable();
+    }
+}
+
+function valueC() {
+    value();
+    while (char() === ',') {
+        accept(','); space();
+        rightHand(); space();
+    }
+}
+
+function value() {
+    if (first.leftHand.contain(symbol())) {
+        leftHand(); space();
+        if (first.deincremental.contain(symbol())) {
+            deincremental();
+        }
+    } else {
+        rightHand();
+    }
+}
+
+function access() {
+    if (char() === '[') {
+        accept('['); space();
+        arrayKey(); space();
+        accept(']');
+    } else {
+        accept('->'); space();
+        tString();
+    }
+}
+
+function deincremental() {
+    if (symbol() === '++') {
+        accept('++');
+    } else {
+        accept('--');
+    }
+}
+
+function functionCall() {
+    tString(); space();
+    accept('('); space();
+    if (first.valueC.contain(symbol())) {
+        valueC(); space();
+    }
+    accept(')');
+}
+
+function arrayKey() {
+    if (first.tVariable.contain(symbol())) {
+        tVariable();
+    } else {
+        constantValueSingle();
+    }
 }
 
 // Operator
 
+function assignmentOperator() {
+    switch (symbol()) {
+        case '=': accept('='); break;
+        case '+=': accept('+='); break;
+        case '-=': accept('-='); break;
+        case '*=': accept('*='); break;
+        case '/=': accept('/='); break;
+        case '%=': accept('%='); break;
+        default: accept('.='); break;
+    }
+}
+
+function operator() {
+    switch (symbol()) {
+        case '+': accept('+'); break;
+        case '-': accept('-'); break;
+        case '*': accept('*'); break;
+        case '/': accept('/'); break;
+        case '%': accept('%'); break;
+        case '**': accept('**'); break;
+        case '==': accept('=='); break;
+        case '===': accept('==='); break;
+        case '!=': accept('!='); break;
+        case '<>': accept('<>'); break;
+        case '!==': accept('!=='); break;
+        case '<': accept('<'); break;
+        case '<=': accept('<='); break;
+        case '>': accept('>'); break;
+        case '>=': accept('>='); break;
+        case 'and': accept('and'); break;
+        case 'or': accept('or'); break;
+        case 'xor': accept('xor'); break;
+        case '&&': accept('&&'); break;
+        case '||': accept('||'); break;
+        case '!': accept('!'); break;
+        default: accept('.'); break;
+    }
+}
+
 // Others
 
+function tVariableC() {
+    tVariable(); space();
+    while (char() === ',') {
+        accept(','); space();
+        tVariable(); space();
+    }
+}
+
+function tVariable() {
+    accept('$');
+    tString();
+}
+
+function tStringC() {
+    tString(); space();
+    while (char() === ',') {
+        accept(','); space();
+        tString(); space();
+    }
+}
+
 function tString() {
-    if(char() === '_') {
+    if (char() === '_') {
         accept('_');
     } else {
         letter();
     }
-    let varName = ['_'].concat(arrLetters).concat(arrDigits);
-    while(varName.contain(char())) {
+    while (first.varName.contain(char())) {
         accept(char());
     }
 }
 
 function varName() {
-    if(char() === '_') {
+    if (char() === '_') {
         accept('_');
-    } else if(arrLetters.contain(char())) {
+    } else if (first.letter.contain(char())) {
         letter();
     } else {
         digit();
     }
 }
 
+function constantValueSingle() {
+    console.log('constant value single');
+    if (char() === '\'') {
+        accept('\'');
+        string();
+        accept('\'');
+    } else if (char() === '\"') {
+        accept('\"');
+        string();
+        accept('\"');
+    } else if (first.number.contain(char())) {
+        number();
+    } else {
+        boolean();
+    }
+}
+
+function array() {
+    if (symbol() === 'array') {
+        accept('array'); space();
+        accept('('); space();
+        arrayValueC(); space();
+        accept(')');
+    } else {
+        accept('['); space();
+        arrayValueC(); space();
+        accept(']');
+    }
+}
+
+function arrayValueC() {
+    arrayValue(); space();
+    while (char() === ',') {
+        accept(','); space();
+        arrayValue(); space();
+    }
+}
+
+function arrayValue() {
+    constantValueSingle(); space();
+    if (symbol() === '=>') {
+        accept('=>'); space();
+        value(); space();
+    }
+}
+
 function letter() {
     let c = char();
-    if(arrLetters.contain(char())) {
+    if (first.letter.contain(char())) {
         accept(c);
     } else {
         accept(null);
@@ -264,9 +663,61 @@ function letter() {
 
 function digit() {
     let c = char();
-    if(arrDigits.contain(char())) {
+    if (first.digit.contain(char())) {
         accept(c);
     } else {
         accept(null);
+    }
+}
+
+function string() {
+    while (first.string.contain(char())) {
+        accept(char());
+    }
+}
+
+function number() {
+    if (first.numberSign.contain(char()) || first.digit.contain(char())) {
+        if (first.numberSign.contain(char())) {
+            numberSign();
+        }
+        space();
+        do {
+            digit();
+        } while (first.digit.contain(char()));
+        if (first.decimal.contain(char())) {
+            decimal();
+        }
+    } else {
+        decimal();
+    }
+}
+
+function decimal() {
+    accept('.');
+    while (first.digit.contain(char())) {
+        digit();
+    }
+}
+
+function numberSign() {
+    if (char() === '-') {
+        accept('-');
+    } else {
+        accept('+');
+    }
+}
+
+function boolean() {
+    if (symbol() === 'true') {
+        accept('true');
+    } else {
+        accept('false');
+    }
+}
+
+function space() {
+    if (char() === ' ') {
+        accept(' ');
     }
 }
