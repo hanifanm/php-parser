@@ -92,7 +92,7 @@ class First {
         this.interfaceExtendsList = ['extends'];
         this.implementsList = ['implements'];
         this.classEntryType = ['abstract', 'final', 'class'];
-        this.classDeclaration = ['class'].concat(this.classEntryType);
+        this.classDeclaration = ['interface'].concat(this.classEntryType);
 
         // Statement
         this.default = ['default'];

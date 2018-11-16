@@ -104,8 +104,7 @@ function program() {
     accept('<?php');
     accept(' ');
     while (first.block.contain(symbol())) {
-        block();
-        space();
+        block(); space();
     }
     space();
     accept('?>')
@@ -130,6 +129,7 @@ function block() {
 // Statement
 
 function statement() {
+    console.log('statement');
     if (char() === '{') {
         accept('{'); space();
         while (first.block.contain(symbol())) {
@@ -159,11 +159,17 @@ function statement() {
             case 'for':
                 accept('for'); space();
                 accept('('); space();
-                exprC(); space();
+                if(first.exprC.contain(symbol())) {
+                    exprC(); space();
+                }
                 accept(';'); space();
-                exprC(); space();
+                if(first.exprC.contain(symbol())) {
+                    exprC(); space();
+                }
                 accept(';'); space();
-                exprC(); space();
+                if(first.exprC.contain(symbol())) {
+                    exprC(); space();
+                }
                 accept(')'); space();
                 innerStatement();
                 break;
@@ -176,7 +182,7 @@ function statement() {
                 while (first.elseif.contain(symbol())) {
                     elseif(); space();
                 }
-                if (first._else.contain(symbol())) {
+                if (first.else.contain(symbol())) {
                     _else(); space();
                 }
                 break;
@@ -213,6 +219,7 @@ function statement() {
 }
 
 function innerStatement() {
+    console.log('inner statement');
     if (first.statement.contain(symbol())) {
         statement();
     } else if (symbol() === 'break') {
@@ -223,6 +230,7 @@ function innerStatement() {
 }
 
 function elseif() {
+    console.log('elseif');
     accept('elseif'); space();
     accept('('); space();
     expr(); space();
@@ -231,6 +239,7 @@ function elseif() {
 }
 
 function _else() {
+    console.log('else');
     accept('else'); space();
     statement();
 }
@@ -305,8 +314,13 @@ function classDeclaration() {
             interfaceExtendsList(); space();
         }
         accept('{'); space();
-        while (first.functionDeclaration.contain(symbol())) {
+        while (first.functionDeclaration.contain(symbol()) || first.modifier.contain(symbol())) {
+            if (first.modifier.contain(symbol())) {
+                modifier();
+                accept(' ');
+            }
             functionDeclaration(); space();
+            accept(';'); space();
         }
         accept('}'); space();
     }
@@ -360,6 +374,9 @@ function modifier() {
         case 'private':
             accept('private');
             break;
+        case 'public':
+            accept('public');
+            break;
         case 'static':
             accept('static');
             break;
@@ -376,7 +393,10 @@ function modifier() {
 
 function functionDeclarationStatement() {
     functionDeclaration(); space();
-    functionStatement();
+    // functionStatement();
+    while (first.block.contain(symbol())) {
+        block(); space();
+    }
 }
 
 function functionDeclaration() {
@@ -423,7 +443,7 @@ function exprC() {
 }
 
 function expr() {
-    console.log('expr', symbol())
+    console.log('expr');
     if (first.assignmentExpr.contain(symbol())) {
         assignmentExpr();
     } else {
@@ -436,6 +456,7 @@ function expr() {
 }
 
 function assignmentExpr() {
+    console.log('assignment expr');
     leftHand(); space();
     if (first.assignmentOperator.contain(symbol())) {
         assignmentOperator(); space();
@@ -443,6 +464,8 @@ function assignmentExpr() {
     } else if (first.operator.contain(symbol())) {
         operator(); space();
         rightHand();
+    } else if (first.deincremental.contain(symbol())) {
+        deincremental();
     }
 }
 
@@ -524,6 +547,7 @@ function arrayKey() {
 // Operator
 
 function assignmentOperator() {
+    console.log('assignment operator');
     switch (symbol()) {
         case '=': accept('='); break;
         case '+=': accept('+='); break;
@@ -536,6 +560,7 @@ function assignmentOperator() {
 }
 
 function operator() {
+    console.log('operator');
     switch (symbol()) {
         case '+': accept('+'); break;
         case '-': accept('-'); break;
@@ -627,7 +652,9 @@ function array() {
     if (symbol() === 'array') {
         accept('array'); space();
         accept('('); space();
-        arrayValueC(); space();
+        if(first.arrayValueC.contain(symbol())) {
+            arrayValueC(); space();
+        }
         accept(')');
     } else {
         accept('['); space();
