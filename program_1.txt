@@ -1,6 +1,3 @@
-// initial.js
-
-let initialString = `
 <?php
 
     $favcolor = "red";
@@ -61,4 +58,3 @@ let initialString = `
     }
 
 ?>
-`

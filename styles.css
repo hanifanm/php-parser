@@ -33,11 +33,21 @@ textarea {
     border-radius: 3px;
 }
 
+input {
+    padding: 10px 0;
+    font-size: 22px;
+    flex: 1;
+}
+
 button {
     padding: 10px 0;
     font-size: 22px;
     cursor: pointer;
     flex: 1;
+}
+
+p {
+    font-size: 20px;
 }
 
 pre {

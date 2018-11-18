@@ -1,8 +1,11 @@
+// index.js
+
 // Global Variable ///////////////////////////////////////////////////
 
 let index = 0;
 let code = '';
 let first = new First();
+let message = '';
 let str = '';
 
 // Helper Function ///////////////////////////////////////////////////
@@ -13,6 +16,7 @@ Array.prototype.contain = function (str) {
 
 // Getter Function ///////////////////////////////////////////////////
 
+// Function to check if the 'str' string is a reserved string in PHP
 function isReserved(str) {
     if (str.length === 1) return true;
     for (let rsv of reserves) {
@@ -21,11 +25,13 @@ function isReserved(str) {
     return false;
 }
 
+// Function to get the char in the current index
 function char() {
     if (index >= str.length) return null;
     return str[index];
 }
 
+// Function to get the reserved string in the current index
 function symbol() {
     if (index >= str.length) return null;
     let symbol = '';
@@ -48,9 +54,8 @@ function accept(str) {
             index += len;
         } else {
             console.log('FAILED WHEN CHECK', char(), 'WHEN IT MUST BE', str);
-            throw new Error({
-                code: code,
-            })
+            message = `Failed on accept symbol '${char()}'.`;
+            throw new Error()
         }
     } else {
         console.log(index + ' CHECK SYMBOL ', symbol(), str);
@@ -59,41 +64,68 @@ function accept(str) {
             index += len;
         } else {
             console.log('FAILED WHEN CHECK', symbol(), 'WHEN IT MUST BE', str);
-            throw new Error({
-                code: code,
-            })
+            message = `Failed on accept symbol '${symbol()}'.`;
+            throw new Error()
         }
     }
 }
 
 // Main Function ///////////////////////////////////////////////////
 
-function main() {
-    index = 0;
-    code = '';
-    try {
-        program();
-        return {
-            status: 'SUCCESS',
-            code: code
-        }
-    } catch (error) {
-        console.error(error);
-        return {
-            status: 'FAILED',
-            code: code
-        }
-    }
+// Function to handle loading the txt file into the DOM
+function onloadfile() {
+    let file = document.getElementById('inputFile').files[0];
+    console.log(file);
+    if(!file) return;
+    let reader = new FileReader();
+      reader.onload = e => {
+          let base64 = e.target.result.split(',').slice(1);
+          let str = atob(base64);
+          console.log(str);
+          console.log(document.getElementById('str'));
+          document.getElementById('str').value = str;
+      };
+    reader.readAsDataURL(file);
 }
 
+// Function to pre-process and post-process string to be parsed
 function test() {
+    // Get and parse string from the DOM
     str = document.getElementById('str').value
         .replace(/\n/g, ' ')
         .replace(/\s\s+/g, ' ')
         .trim();
+    
+    // Calling the main method 
     let result = main();
-    document.getElementById('status').innerText = result.status;
+
+    // Load result into the DOM
+    document.getElementById('status').innerText = `Status : ${result.status}`;
+    document.getElementById('message').innerText = `Message : ${result.message}`;
     document.getElementById('code').innerText = result.code;
+}
+
+// Main method to parse the string
+function main() {
+    index = 0;
+    code = '';
+    message = '';
+    try {
+        // Run the program
+        program();
+        return {
+            status: 'Success',
+            code: code,
+            message: 'String is accepted.'
+        }
+    } catch (error) {
+        // Catching the error
+        return {
+            status: 'Failed',
+            code: code,
+            message: message
+        }
+    }
 }
 
 // EBNF Parser ///////////////////////////////////////////////////
@@ -394,9 +426,11 @@ function modifier() {
 function functionDeclarationStatement() {
     functionDeclaration(); space();
     // functionStatement();
-    while (first.block.contain(symbol())) {
+    accept('{'); space();
+    if(first.block.contain(symbol())) {
         block(); space();
     }
+    accept('}'); space();
 }
 
 function functionDeclaration() {
@@ -672,10 +706,14 @@ function arrayValueC() {
 }
 
 function arrayValue() {
-    constantValueSingle(); space();
-    if (symbol() === '=>') {
-        accept('=>'); space();
-        value(); space();
+    if(first.constantValueSingle.contain(symbol())){
+        constantValueSingle(); space();
+        if (symbol() === '=>') {
+            accept('=>'); space();
+            value(); space();
+        }
+    } else {
+        array();
     }
 }
 

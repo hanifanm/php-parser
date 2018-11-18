@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,14 +13,17 @@
         <div class='container'>
             <div class='code'>
                 <div class='action'>
+                    <input type='file' id='inputFile' onchange="onloadfile()" accept="text/plain"/>
                     <button onclick='test()'>PARSE CODE</button>
                 </div>
-                <textarea rows='40' id='str'></textarea>
+                <textarea rows='35' id='str'></textarea>
             </div>
             <div class='divider'></div>
             <div class='result'>
                 <h2>TEST RESULT</h2>
+                <hr/>
                 <p id='status'></p>
+                <p id='message'></p>
                 <pre id='code'></pre>
             </div>
         </div>
@@ -28,7 +32,7 @@
         <script src='index.js'></script>
         <script src='initial.js'></script>
         <script>
-            document.getElementById('str').innerHTML = initialString;
+            document.getElementById('str').value = initialString;
             test();
         </script>
 
